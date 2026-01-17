@@ -1,1 +1,1 @@
-// middleware temporariamente desativado para debug
+export {}
