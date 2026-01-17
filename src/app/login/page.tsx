@@ -1,18 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { LogIn, UserPlus, Loader2, DollarSign } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -25,6 +32,18 @@ export default function LoginPage() {
   const [signupEmail, setSignupEmail] = useState('')
   const [signupPassword, setSignupPassword] = useState('')
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('')
+
+  // 🔐 Se o usuário já estiver logado, manda direto pro dashboard
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        router.replace('/dashboard')
+      }
+    }
+
+    checkSession()
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +61,10 @@ export default function LoginPage() {
 
       if (data.user) {
         setSuccess('Login realizado com sucesso!')
-        setTimeout(() => router.push('/'), 1000)
+        // 👉 REDIRECIONA PARA O DASHBOARD
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 800)
       }
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login')
@@ -57,7 +79,6 @@ export default function LoginPage() {
     setError(null)
     setSuccess(null)
 
-    // Validações
     if (signupPassword !== signupConfirmPassword) {
       setError('As senhas não coincidem')
       setLoading(false)
@@ -99,7 +120,9 @@ export default function LoginPage() {
             <div className="w-8 h-8 bg-[#2F6F65] rounded-lg flex items-center justify-center">
               <DollarSign className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-[#1F2933]">FinanceControl</h1>
+            <h1 className="text-2xl font-bold text-[#1F2933]">
+              FinanceControl
+            </h1>
           </div>
           <CardTitle className="text-2xl font-semibold text-center text-[#2F6F65]">
             Bem-vindo
@@ -108,6 +131,7 @@ export default function LoginPage() {
             Entre na sua conta ou crie uma nova
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -133,119 +157,22 @@ export default function LoginPage() {
               </Alert>
             )}
 
-            {/* TAB DE LOGIN */}
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label>Email</Label>
                   <Input
-                    id="login-email"
                     type="email"
-                    placeholder="seu@email.com"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
                     disabled={loading}
-                    className="h-11"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Senha</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="h-11"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full h-11 bg-[#2F6F65] text-white hover:bg-[#6BC2A1]"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Entrando...
-                    </>
-                  ) : (
-                    <>
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Entrar
-                    </>
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
 
-            {/* TAB DE CADASTRO */}
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label>Senha</Label>
                   <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
-                  <Input
-                    id="signup-password"
                     type="password"
-                    placeholder="••••••••"
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-confirm-password">Confirmar Senha</Label>
-                  <Input
-                    id="signup-confirm-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={signupConfirmPassword}
-                    onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="h-11"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full h-11 bg-[#2F6F65] text-white hover:bg-[#6BC2A1]"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Criando conta...
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Criar Conta
-                    </>
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
+                    value={loginPassword}
+                    onCha
